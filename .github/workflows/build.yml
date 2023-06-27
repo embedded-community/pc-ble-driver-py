@@ -34,19 +34,6 @@ jobs:
         ref: c0ffd419053e2405fffdb02ce7f1f9acceff4a66
         path: pc-ble-driver
 
-    - name: Checkout vcpkg
-      if: runner.os == 'Windows'
-      uses: actions/checkout@v3
-      with:
-        repository: Microsoft/vcpkg
-        ref: c7ab9d3110813979a873b2dbac630a9ab79850dc
-        path: vcpkg
-
-    - name: Bootstrap vcpkg
-      if: runner.os == 'Windows'
-      working-directory: vcpkg
-      run: .\bootstrap-vcpkg.bat
-    
     - name: Install linux dependencies
       if: runner.os == 'Linux'
       run: sudo apt-get update && sudo apt-get install -y cmake build-essential libspdlog-dev libasio-dev libudev-dev
@@ -64,10 +51,10 @@ jobs:
       if: runner.os == 'Windows'
       shell: cmd
       env: 
-        VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+        VCPKG_ROOT: C:\vcpkg
       run: |
         choco install cmake swig
-        vcpkg install asio spdlog
+        vcpkg install --triplet x64-windows asio spdlog
 
     - name: toxify
       working-directory: pc-ble-driver
@@ -87,6 +74,8 @@ jobs:
     - name: Compile pc-ble-driver windows
       if: runner.os == 'Windows'
       working-directory: pc-ble-driver
+      env: 
+        VCPKG_ROOT: C:\vcpkg
       run: |
         mkdir build && cd build
         cmake -DCMAKE_BUILD_TYPE=Debug -DDISABLE_TESTS=1 -DNRF_BLE_DRIVER_VERSION=4.1.100 -G "Visual Studio 16 2019" -A x64 ..
