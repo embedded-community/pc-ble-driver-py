@@ -49,10 +49,10 @@ jobs:
 
     - name: Install windows dependencies
       if: runner.os == 'Windows'
-      shell: cmd
-      env: 
+      env:
         VCPKG_ROOT: C:\vcpkg
       run: |
+        echo "VCPKG_ROOT=${{ env.VCPKG_ROOT }}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
         choco install cmake swig
         vcpkg install --triplet x64-windows asio spdlog
 
@@ -74,12 +74,11 @@ jobs:
     - name: Compile pc-ble-driver windows
       if: runner.os == 'Windows'
       working-directory: pc-ble-driver
-      env: 
-        VCPKG_ROOT: C:\vcpkg
       run: |
         mkdir build && cd build
         cmake -DCMAKE_BUILD_TYPE=Debug -DDISABLE_TESTS=1 -DNRF_BLE_DRIVER_VERSION=4.1.100 -G "Visual Studio 16 2019" -A x64 ..
         cmake --build . --config Debug --target nrf_ble_driver_sd_api_v5_static
+        cmake --install . --config Debug
 
     - name: Build pc-ble-driver-py wheels
       working-directory: pc-ble-driver-py
