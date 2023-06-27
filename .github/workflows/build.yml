@@ -8,11 +8,9 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-20.04, ubuntu-22.04]
-        python-version: [ '3.7', '3.8', '3.9', '3.10', '3.11' ]
+        os: [ ubuntu-20.04, ubuntu-22.04, macos-latest, windows-2019 ]
+        python-version: [ '3.8', '3.9', '3.10', '3.11' ]
         include:
-          - python-version: '3.7'
-            toxpy: py37
           - python-version: '3.8'
             toxpy: py38
           - python-version: '3.9'
@@ -36,13 +34,24 @@ jobs:
         ref: c0ffd419053e2405fffdb02ce7f1f9acceff4a66
         path: pc-ble-driver
     
-    - name: Install dependencies
+    - name: Install linux dependencies
+      if: runner.os == 'Linux'
       run: sudo apt-get update && sudo apt-get install -y cmake build-essential libspdlog-dev libasio-dev libudev-dev
+
+    - name: Install macos dependencies
+      if: runner.os == 'macOS'
+      run: brew install cmake swig
 
     - name: Setup python
       uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
+
+    - name: Install windows dependencies
+      if: runner.os == 'Windows'
+      shell: cmd
+      run: |
+        choco install cmake swig
     
     - name: toxify
       working-directory: pc-ble-driver
@@ -51,12 +60,21 @@ jobs:
          tox -e ${{ matrix.toxpy }}
         
     - name: Compile pc-ble-driver
+      if: runner.os != 'Windows'
       working-directory: pc-ble-driver
       run: |
         mkdir build && cd build
         cmake -DCMAKE_BUILD_TYPE=Debug -DDISABLE_TESTS=1 -DNRF_BLE_DRIVER_VERSION=4.1.100 -G "Unix Makefiles" ..
         make nrf_ble_driver_sd_api_v5_static
         sudo make install
+
+    - name: Compile pc-ble-driver windows
+      if: runner.os == 'Windows'
+      working-directory: pc-ble-driver
+      run: |
+        mkdir build && cd build
+        cmake -DCMAKE_BUILD_TYPE=Debug -DDISABLE_TESTS=1 -DNRF_BLE_DRIVER_VERSION=4.1.100 -G "Visual Studio 16 2019" -A x64 ..
+        cmake --build . --config Debug --target nrf_ble_driver_sd_api_v5_static
 
     - name: Build pc-ble-driver-py wheels
       working-directory: pc-ble-driver-py
@@ -66,6 +84,6 @@ jobs:
     - name: Upload artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: pc_ble_driver_py-linux-${{ matrix.os }}-${{ matrix.toxpy}}
+        name: pc_ble_driver_py-${{ matrix.os }}-${{ matrix.toxpy}}
         path: "pc-ble-driver-py/dist/*.whl"
         if-no-files-found: error
