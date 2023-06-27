@@ -40,7 +40,7 @@ jobs:
 
     - name: Install macos dependencies
       if: runner.os == 'macOS'
-      run: brew install cmake swig
+      run: brew install cmake swig asio 
 
     - name: Setup python
       uses: actions/setup-python@v4
