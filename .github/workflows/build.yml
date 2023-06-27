@@ -8,7 +8,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ ubuntu-20.04, ubuntu-22.04, macos-latest ]
+        os: [ ubuntu-20.04, ubuntu-22.04, macos-latest, windows-2019 ]
         python-version: [ '3.8', '3.9', '3.10', '3.11' ]
         include:
           - python-version: '3.8'
@@ -33,6 +33,19 @@ jobs:
         repository: NordicSemiconductor/pc-ble-driver
         ref: c0ffd419053e2405fffdb02ce7f1f9acceff4a66
         path: pc-ble-driver
+
+    - name: Checkout vcpkg
+      if: runner.os == 'Windows'
+      uses: actions/checkout@v3
+      with:
+        repository: Microsoft/vcpkg
+        ref: c7ab9d3110813979a873b2dbac630a9ab79850dc
+        path: vcpkg
+
+    - name: Bootstrap vcpkg
+      if: runner.os == 'Windows'
+      working-directory: vcpkg
+      run: .\bootstrap-vcpkg.bat
     
     - name: Install linux dependencies
       if: runner.os == 'Linux'
@@ -40,7 +53,7 @@ jobs:
 
     - name: Install macos dependencies
       if: runner.os == 'macOS'
-      run: brew install cmake swig asio 
+      run: brew install cmake swig asio spdlog
 
     - name: Setup python
       uses: actions/setup-python@v4
@@ -50,9 +63,12 @@ jobs:
     - name: Install windows dependencies
       if: runner.os == 'Windows'
       shell: cmd
+      env: 
+        VCPKG_ROOT: ${{ github.workspace }}/vcpkg
       run: |
         choco install cmake swig
-    
+        vcpkg install asio spdlog
+
     - name: toxify
       working-directory: pc-ble-driver
       run: |
