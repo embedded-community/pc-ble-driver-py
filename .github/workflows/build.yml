@@ -76,8 +76,8 @@ jobs:
       working-directory: pc-ble-driver
       run: |
         mkdir build && cd build
-        cmake -DCMAKE_BUILD_TYPE=Debug -DDISABLE_TESTS=1 -DNRF_BLE_DRIVER_VERSION=4.1.100 -G "Visual Studio 16 2019" -A x64 ..
-        cmake --build . --config Debug --target nrf_ble_driver_sd_api_v5_static
+        cmake -DCMAKE_BUILD_TYPE=Debug -DDISABLE_TESTS=1 "-DNRF_BLE_DRIVER_VERSION=4.1.100" -G "Visual Studio 16 2019" -A x64 ..
+        cmake --build . --config Debug
         cmake --install . --config Debug
 
     - name: Build pc-ble-driver-py wheels
