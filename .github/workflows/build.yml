@@ -104,13 +104,14 @@ jobs:
       # IMPORTANT: this permission is mandatory for trusted publishing
       id-token: write
     steps:
-      - name: Upload artifacts
+      - name: Download artifacts
         uses: actions/download-artifact@v3
         with:
-          path: pc-ble-driver-py/dist/
-        
+          path: dist
+      - name: flatten folder structure
+        run: find dist -name '*.whl' -exec cp {} dist \;
       # retrieve your distributions here
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          packages-dir: pc-ble-driver-py/dist/
+          packages-dir: dist/
