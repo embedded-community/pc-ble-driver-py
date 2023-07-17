@@ -106,6 +106,9 @@ jobs:
     steps:
       - name: Upload artifacts
         uses: actions/download-artifact@v3
+        with:
+          path: pc-ble-driver-py/dist/
+        
       # retrieve your distributions here
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
