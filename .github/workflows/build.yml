@@ -108,5 +108,6 @@ jobs:
         uses: actions/download-artifact@v3
       # retrieve your distributions here
       - name: Publish package distributions to PyPI
-        packages-dir: pc-ble-driver-py/dist/
         uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: pc-ble-driver-py/dist/
