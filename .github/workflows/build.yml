@@ -109,7 +109,9 @@ jobs:
         with:
           path: dist
       - name: flatten folder structure
-        run: find dist -name '*.whl' -exec cp {} dist \;
+        run: |
+          find dist -name '*.whl' -exec mv {} dist \;
+          find . -type d -empty -delete
       # retrieve your distributions here
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
