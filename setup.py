@@ -75,7 +75,7 @@ def find_version(*file_paths):
 packages = find_packages(exclude=["tests*"])
 
 setup(
-    name="pc_ble_driver_py",
+    name="pc_ble_driver_py_com",
     version=find_version("pc_ble_driver_py", "__init__.py"),
     description="Python bindings for the Nordic pc-ble-driver SoftDevice serialization library",
     long_description="A Python interface and library for pc-ble-driver. This allows Python applications to interface "
