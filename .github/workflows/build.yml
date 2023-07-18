@@ -103,6 +103,7 @@ jobs:
     permissions:
       # IMPORTANT: this permission is mandatory for trusted publishing
       id-token: write
+      contents: write
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@v3
@@ -112,7 +113,10 @@ jobs:
         run: |
           find dist -name '*.whl' -exec mv {} dist \;
           find dist -type d -empty -delete
-          rm dist/*linux*.whl
+          # convert linux wheels to manylinux format
+          docker run --rm -v `pwd`/dist:/io quay.io/pypa/manylinux2014_x86_64 auditwheel repair /io/*.linux*.whl -w /io/wheelhouse/
+          # drop unsupported wheels
+          rm dist/*-linux*.whl
       # retrieve your distributions here
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
