@@ -112,13 +112,13 @@ jobs:
         run: |
           find dist -name '*.whl' -exec mv {} dist \;
           find . -type d -empty -delete
-      - name: upload release assets
-        uses: softprops/action-gh-release@v1
-        with:
-          files: dist/*.whl
       # retrieve your distributions here
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          packages-dir: dist/      
+          packages-dir: dist/
+      - name: upload release assets
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dist/*
           
