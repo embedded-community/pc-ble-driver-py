@@ -95,10 +95,10 @@ jobs:
         name: pc_ble_driver_py-${{ matrix.os }}-${{ matrix.toxpy}}
         path: "pc-ble-driver-py/dist/*.whl"
         if-no-files-found: error
-  pypi-publish:
+  release:
     needs: build
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
-    name: upload release to PyPI
+    name: upload release assets
     runs-on: ubuntu-latest
     permissions:
       # IMPORTANT: this permission is mandatory for trusted publishing
@@ -116,18 +116,9 @@ jobs:
           find . -name '*.whl' -exec mv {} . \;
           find . -type d -empty -delete
           
-          # linux wheels at the moment are not pypi/manylinux compatible
-          # drop unsupported wheels.
-          rm *-linux*.whl
-
           # list files
           ls -R
       
-      - name: Publish package distributions to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          packages-dir: dist/
-
       - name: upload release assets
         uses: softprops/action-gh-release@v1
         with:
