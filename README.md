@@ -1,17 +1,21 @@
 # Python bindings for the nRF5 Bluetooth Low Energy GAP/GATT driver
 
-[![Latest version](https://img.shields.io/pypi/v/pc-ble-driver-py.svg)](https://pypi.python.org/pypi/pc-ble-driver-py)
-[![License](https://img.shields.io/pypi/l/pc-ble-driver-py.svg)](https://pypi.python.org/pypi/pc-ble-driver-py)
+[![Latest version](https://img.shields.io/pypi/v/pc-ble-driver-py.svg)](https://pypi.python.org/pypi/pc-ble-driver-py-com)
+[![License](https://img.shields.io/pypi/l/pc-ble-driver-py.svg)](https://pypi.python.org/pypi/pc-ble-driver-py-com)
 
 ## Introduction
-pc-ble-driver-py is a serialization library over serial port that provides Python bindings
-for the [nrf-ble-driver library](https://github.com/NordicSemiconductor/pc-ble-driver).
+pc-ble-driver-py-com is community fork of pc-ble-driver that is a serialization library over serial port that provides Python bindings
+for the [nrf-ble-driver library](https://github.com/embedded-community/pc-ble-driver-com).
 
-The Python bindings require that the development kit you use is programmed with the correct connectivity firmware. [Hardware setup](https://github.com/NordicSemiconductor/pc-ble-driver/tree/master#hardware-setup)
+The Python bindings require that the development kit you use is programmed with the correct connectivity firmware. [Hardware setup](https://github.com/embedded-community/pc-ble-driver-com/tree/master#hardware-setup)
 
 ## License
 
 See the [license file](LICENSE) for details.
+
+## Why Fork
+
+Nordic has deprecated original project and hasn't create releases for long time even there was some hot fixed already merged to master. This fork ensures that project is alive and hot fixes is available in pypi. 
 
 ## Disclaimer
 pc-ble-driver-py does not implement or enable all of the features of the underlying pc-ble-driver (C/C++) library. Features have mostly been added on a need basis. Functions or features that have been added may also be lacking sub-features. However, as the underlying language bindings have been auto-generated, it is often the case that features can be made available by adding to the conversion-layer found in ´ble_driver.py´.
@@ -21,7 +25,7 @@ If you find features missing that you would like to have in, you are welcome to 
 
 To install the latest published version from the Python Package Index simply type:
 
-    pip install pc-ble-driver-py
+    pip install pc-ble-driver-py-com
 
 **Note**: On Windows, the runtime libraries targeted when building the library must be present when running code using the library. If you get one of the following errors:
 
