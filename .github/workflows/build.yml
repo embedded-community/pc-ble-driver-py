@@ -129,7 +129,6 @@ jobs:
           packages-dir: dist/
 
       - name: upload release assets
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
         uses: softprops/action-gh-release@v1
         with:
           files: dist/*
