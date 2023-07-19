@@ -117,7 +117,7 @@ jobs:
         working-directory: dist
         run: |
           # convert linux wheels to manylinux format
-          find . -name '*linux*.whl' -exec docker run --rm -v `pwd`:/io -w /io quay.io/pypa/manylinux1_x86_64 auditwheel repair {} -w /io/
+          find . -name '*linux*.whl' -exec docker run --rm -v `pwd`:/io -w /io quay.io/pypa/manylinux2014_x86_64 auditwheel repair {} -w /io/
           # drop unsupported wheels
           rm *-linux*.whl
       # retrieve your distributions here
