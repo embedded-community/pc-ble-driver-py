@@ -114,9 +114,9 @@ jobs:
           find dist -name '*.whl' -exec mv {} dist \;
           find dist -type d -empty -delete
           # convert linux wheels to manylinux format
-          docker run --rm -v `pwd`/dist:/io quay.io/pypa/manylinux2014_x86_64 auditwheel repair /io/*linux*.whl -w /io/
+          docker run --rm -v `pwd`/dist:/io quay.io/pypa/manylinux2014_x86_64 auditwheel repair /io/*ubuntu*.whl -w /io/
           # drop unsupported wheels
-          rm dist/*-linux*.whl
+          rm dist/*-ubuntu*.whl
       # retrieve your distributions here
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
