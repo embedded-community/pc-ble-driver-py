@@ -114,7 +114,7 @@ jobs:
           find dist -type d -empty -delete
           ls -R dist
           # convert linux wheels to manylinux format
-          docker run --rm -v `pwd`/dist:/io -w /io quay.io/pypa/manylinux1_x86_64 auditwheel repair *.whl -w /io/
+          docker run --rm -v `pwd`/dist:/io -w /io quay.io/pypa/manylinux1_x86_64 auditwheel repair pc_ble_driver_py_com-0.17.1-cp310-cp310-linux_x86_64.whl -w /io/
           # drop unsupported wheels
           rm dist/*-linux*.whl
       # retrieve your distributions here
