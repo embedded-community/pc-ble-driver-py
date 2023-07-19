@@ -96,7 +96,6 @@ jobs:
         path: "pc-ble-driver-py/dist/*.whl"
         if-no-files-found: error
   pypi-publish:
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
     needs: build
     name: upload release to PyPI
     runs-on: ubuntu-latest
@@ -111,18 +110,28 @@ jobs:
           path: dist
       - name: flatten folder structure
         run: |
+          ls -R dist
           find dist -name '*.whl' -exec mv {} dist \;
           find dist -type d -empty -delete
+          ls -R dist
           # convert linux wheels to manylinux format
           docker run --rm -v `pwd`/dist:/io quay.io/pypa/manylinux2014_x86_64 auditwheel repair /io/*ubuntu*.whl -w /io/
           # drop unsupported wheels
           rm dist/*-ubuntu*.whl
       # retrieve your distributions here
       - name: Publish package distributions to PyPI
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: dist/
+      - name: Test Publishing distributions to PyPI
+        if: github.event_name == 'pull_request'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/
+          repository-url: https://test.pypi.org/legacy/
       - name: upload release assets
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
         uses: softprops/action-gh-release@v1
         with:
           files: dist/*
