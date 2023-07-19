@@ -112,14 +112,11 @@ jobs:
         run: |
           find dist -name '*.whl' -exec mv {} dist \;
           find dist -type d -empty -delete
-          ls -R dist
-      - name: make linux wheels pypi compatible
-        working-directory: dist
-        run: |
-          # convert linux wheels to manylinux format
-          find . -name '*linux*.whl' -exec docker run --rm -v `pwd`:/io -w /io quay.io/pypa/manylinux2014_x86_64 auditwheel repair {} -w /io/ \;
+          
           # drop unsupported wheels
           rm *-linux*.whl
+          # list files
+          ls -R dist
       # retrieve your distributions here
       - name: Publish package distributions to PyPI
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
