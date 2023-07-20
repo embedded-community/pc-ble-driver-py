@@ -4,8 +4,8 @@
 [![License](https://img.shields.io/pypi/l/pc-ble-driver-py.svg)](https://pypi.python.org/pypi/pc-ble-driver-py)
 
 ## Introduction
-**Forked** pc-ble-driver that is a serialization library over serial port that provides Python bindings
-for the [nrf-ble-driver library](https://github.com/embedded-community/pc-ble-driver).
+**Forked** pc-ble-driver-py that is a serialization library over serial port that provides Python bindings
+for the [nrf-ble-driver library](https://github.com/NordicSemiconductor/pc-ble-driver).
 
 The Python bindings require that the development kit you use is programmed with the correct connectivity firmware. [Hardware setup](https://github.com/embedded-community/pc-ble-driver/tree/master#hardware-setup)
 
