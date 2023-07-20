@@ -23,16 +23,15 @@ If you find features missing that you would like to have in, you are welcome to 
 
 ## Installing from PyPI
 
-**NOTE:** Fork is not available in pypi since it breaks ABI. Instead use wheels directly from [release](https://github.com/embedded-community/pc-ble-driver-py/releases/latest) assets.
+**Note**: Fork is not available in pypi since it would break ABI. Instead use wheels directly from [release](https://github.com/embedded-community/pc-ble-driver-py/releases/latest) assets.
+
+e.g.
 
     ```shell
-    pip install https://github.com/embedded-comminity/pc-ble-driver-py/releases/download/v0.17.1/
+    pip install https://github.com/embedded-community/pc-ble-driver-py/releases/download/v0.17.1/pc_ble_driver_py_com-0.17.1-cp39-cp39-macosx_12_0_x86_64.whl
     ```
 
-~~To install the latest published version from the Python Package Index simply type:
-
-    pip install pc-ble-driver-py
-~~
+**Note**: Please ensure to choose the appropriate wheel file that aligns with your operating system and Python version.
 
 **Note**: On Windows, the runtime libraries targeted when building the library must be present when running code using the library. If you get one of the following errors:
 
