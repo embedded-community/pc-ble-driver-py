@@ -71,7 +71,7 @@ jobs:
       working-directory: pc-ble-driver
       run: |
         mkdir build && cd build
-        cmake -DCMAKE_BUILD_TYPE=Debug -DDISABLE_TESTS=1 -DNRF_BLE_DRIVER_VERSION=${{ env.NRF_BLE_DRIVER_VERSION }} -G "Unix Makefiles" ..
+        cmake -DCMAKE_BUILD_TYPE=Release -DDISABLE_TESTS=1 -DNRF_BLE_DRIVER_VERSION=${{ env.NRF_BLE_DRIVER_VERSION }} -G "Unix Makefiles" ..
         make nrf_ble_driver_sd_api_v5_static
         sudo make install
 
