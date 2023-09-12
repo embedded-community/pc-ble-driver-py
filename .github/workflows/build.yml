@@ -65,7 +65,7 @@ jobs:
       run: |
          python -m pip install scikit-build tox
          tox -e ${{ matrix.toxpy }}
-        
+
     - name: Compile pc-ble-driver
       if: runner.os != 'Windows'
       working-directory: pc-ble-driver
@@ -80,15 +80,15 @@ jobs:
       working-directory: pc-ble-driver
       run: |
         mkdir build && cd build
-        cmake -DCMAKE_BUILD_TYPE=Debug -DDISABLE_TESTS=1 "-DNRF_BLE_DRIVER_VERSION=${{ env.NRF_BLE_DRIVER_VERSION }}" -G "Visual Studio 16 2019" -A x64 ..
-        cmake --build . --config Debug
-        cmake --install . --config Debug
+        cmake -DCMAKE_BUILD_TYPE=Release -DDISABLE_TESTS=1 "-DNRF_BLE_DRIVER_VERSION=${{ env.NRF_BLE_DRIVER_VERSION }}" -G "Visual Studio 16 2019" -A x64 ..
+        cmake --build . --config Release
+        cmake --install . --config Release
 
     - name: Build pc-ble-driver-py wheels
       working-directory: pc-ble-driver-py
       run: |
         python setup.py bdist_wheel --build-type Release
-  
+
     - name: Upload artifacts
       uses: actions/upload-artifact@v3
       with:
@@ -115,10 +115,10 @@ jobs:
         run: |
           find . -name '*.whl' -exec mv {} . \;
           find . -type d -empty -delete
-          
+
           # list files
           ls -R
-      
+
       - name: upload release assets
         uses: softprops/action-gh-release@v1
         with:
