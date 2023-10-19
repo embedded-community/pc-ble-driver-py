@@ -150,7 +150,7 @@ class EvtSync(object):
             self.conds[evt] = Condition(Lock())
         self.data = None
 
-    def wait(self, evt, timeout=5):
+    def wait(self, evt, timeout=8):
         self.data = None
         with self.conds[evt]:
             self.conds[evt].wait(timeout=timeout)
