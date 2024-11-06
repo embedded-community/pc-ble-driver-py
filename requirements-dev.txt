@@ -5,5 +5,3 @@ cmake >= 3.20.3
 swig >= 4.2.0
 ninja ~= 1.9.0
 tox ~= 3.9.0
-unittest-xml-reporting==3.0.4
-xmlrunner~=1.7.7
