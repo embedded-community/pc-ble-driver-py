@@ -19,6 +19,8 @@ jobs:
             toxpy: py310
           - python-version: '3.11'
             toxpy: py311
+          - python-version: '3.12'
+            toxpy: py312
     runs-on: ${{ matrix.os }}
 
     steps:
