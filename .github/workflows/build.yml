@@ -36,7 +36,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         repository: embedded-community/pc-ble-driver
-        ref: 508273d3ef7e71f1678b2874ba80c2fd0bb2874f
+        ref: fdbf92831badbca016d2bf95da6fab056ef2d931
         path: pc-ble-driver
 
     - name: Install linux dependencies
