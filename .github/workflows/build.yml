@@ -17,10 +17,13 @@ jobs:
         include:
           - python-version: '3.10'
             toxpy: py310
+            macos-python-version: '3.10.9'
           - python-version: '3.11'
             toxpy: py311
+            macos-python-version: '3.11.9'
           - python-version: '3.12'
             toxpy: py312
+            macos-python-version: '3.12.7'
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -54,8 +57,16 @@ jobs:
 
     - name: Setup python
       uses: actions/setup-python@v5
+      if: matrix.os != 'macos-13'
       with:
         python-version: ${{ matrix.python-version }}
+        
+    - name: Setup python for macos
+      if: matrix.os == 'macos-13'
+      run: |
+        curl -s https://www.python.org/ftp/python/${{ matrix.macos-python-version }}/python-${{ matrix.macos-python-version }}-macos11.pkg --output python.pkg
+        sudo installer -pkg python.pkg -target /
+        echo "/Library/Frameworks/Python.framework/Versions/${{ matrix.macos-python-version }}/bin" >> $GITHUB_PATH
 
     - name: Install Python dependencies
       working-directory: pc-ble-driver-py
