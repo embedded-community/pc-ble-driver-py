@@ -67,6 +67,7 @@ jobs:
         curl -s https://www.python.org/ftp/python/${{ matrix.macos-python-version }}/python-${{ matrix.macos-python-version }}-macos11.pkg --output python.pkg
         sudo installer -pkg python.pkg -target /
         echo "/Library/Frameworks/Python.framework/Versions/${{ matrix.python-version }}/bin" >> $GITHUB_PATH
+        pip3 install --upgrade pip
 
     - name: Install Python dependencies
       working-directory: pc-ble-driver-py
