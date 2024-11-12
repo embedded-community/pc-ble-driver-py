@@ -12,15 +12,18 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ ubuntu-20.04, macos-13, windows-2019 ]
+        os: [ ubuntu-20.04, macos-13, macos-14, windows-2019 ]
         python-version: [ '3.10', '3.11', '3.12' ]
         include:
           - python-version: '3.10'
             toxpy: py310
+            macos-python-version: '3.10.9'
           - python-version: '3.11'
             toxpy: py311
+            macos-python-version: '3.11.9'
           - python-version: '3.12'
             toxpy: py312
+            macos-python-version: '3.12.7'
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -32,8 +35,8 @@ jobs:
     - name: Checkout pc-ble-driver
       uses: actions/checkout@v4
       with:
-        repository: NordicSemiconductor/pc-ble-driver
-        ref: c0ffd419053e2405fffdb02ce7f1f9acceff4a66
+        repository: embedded-community/pc-ble-driver
+        ref: fdbf92831badbca016d2bf95da6fab056ef2d931
         path: pc-ble-driver
 
     - name: Install linux dependencies
@@ -54,19 +57,46 @@ jobs:
 
     - name: Setup python
       uses: actions/setup-python@v5
+      if: "! contains(matrix.os, 'macos')"
       with:
         python-version: ${{ matrix.python-version }}
+        
+    - name: Setup python for macos
+      if: contains(matrix.os, 'macos')
+      run: |
+        curl -s https://www.python.org/ftp/python/${{ matrix.macos-python-version }}/python-${{ matrix.macos-python-version }}-macos11.pkg --output python.pkg
+        sudo installer -pkg python.pkg -target /
+        # Find the path of the newly installed Python
+        PYTHON_PATH=$(ls /Library/Frameworks/Python.framework/Versions/${{ matrix.python-version }}/bin/python3)
+    
+        # Create a symbolic link to the installed Python version
+        which python3
+        sudo ln -sf $PYTHON_PATH /usr/local/bin/python3
+        sudo ln -sf $PYTHON_PATH /usr/local/bin/
+
+        # Prepend /usr/local/bin to PATH to override any default Homebrew paths
+        echo "PATH=/usr/local/bin:$PATH" >> $GITHUB_ENV
+
+        PATH=/usr/local/bin:$PATH
+        python3 --version
+        pip3 install --upgrade pip
+        # install explicitly
+        pip3 install scikit-build~=0.18.1
 
     - name: Install Python dependencies
       working-directory: pc-ble-driver-py
-      run: python -m pip install -r requirements-dev.txt
+      run: python3 -m pip install -r requirements-dev.txt
 
     - name: Compile pc-ble-driver
       if: runner.os != 'Windows'
       working-directory: pc-ble-driver
       run: |
         mkdir build && cd build
-        cmake -DCMAKE_BUILD_TYPE=Release -DDISABLE_TESTS=1 -DNRF_BLE_DRIVER_VERSION=${{ env.NRF_BLE_DRIVER_VERSION }} -G "Unix Makefiles" ..
+        cmake_args="-DCMAKE_BUILD_TYPE=Release -DDISABLE_TESTS=1 -DNRF_BLE_DRIVER_VERSION=${{ env.NRF_BLE_DRIVER_VERSION }}"
+        if [[ "${{ matrix.os }}" == "macos-14" ]]; then
+          cmake_args="$cmake_args -DARCH=arm64"
+        fi
+        cmake $cmake_args -G "Unix Makefiles" ..
         make nrf_ble_driver_sd_api_v5_static
         sudo make install
 
@@ -83,13 +113,13 @@ jobs:
       if: runner.os != 'Windows'
       working-directory: pc-ble-driver-py
       run: |
-        python setup.py bdist_wheel --build-type Release
+        python3 setup.py bdist_wheel --build-type Release
 
     - name: Build pc-ble-driver-py wheels windows
       if: runner.os == 'Windows'
       working-directory: pc-ble-driver-py
       run: |
-        python setup.py bdist_wheel --build-type Release -G "Visual Studio 16 2019" --skip-generator-test
+        python3 setup.py bdist_wheel --build-type Release -G "Visual Studio 16 2019" --skip-generator-test
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4

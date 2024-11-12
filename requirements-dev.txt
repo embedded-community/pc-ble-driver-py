@@ -3,5 +3,5 @@ wheel == 0.36.2
 scikit-build ~= 0.18.1
 cmake >= 3.20.3
 swig >= 4.2.0
-ninja ~= 1.9.0
+ninja ~= 1.11.1.1
 tox ~= 3.9.0
