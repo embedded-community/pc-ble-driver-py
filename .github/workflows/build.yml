@@ -70,8 +70,12 @@ jobs:
         PYTHON_PATH=$(ls /Library/Frameworks/Python.framework/Versions/${{ matrix.python-version }}/bin/python3)
     
         # Create a symbolic link to the installed Python version
+        which python3
         sudo ln -sf $PYTHON_PATH /usr/local/bin/python3
         sudo ln -sf $PYTHON_PATH /usr/local/bin/
+
+        # Add /usr/local/bin to the PATH to ensure it takes precedence
+        echo "/usr/local/bin" >> $GITHUB_PATH
         
         python3 --version
         pip3 install --upgrade pip
