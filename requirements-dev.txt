@@ -1,9 +1,7 @@
 setuptools >= 54.1.2
 wheel == 0.36.2
-scikit-build ~= 0.11.1
+scikit-build ~= 0.18.1
 cmake >= 3.20.3
 swig >= 4.2.0
 ninja ~= 1.9.0
 tox ~= 3.9.0
-unittest-xml-reporting==3.0.4
-xmlrunner~=1.7.7
