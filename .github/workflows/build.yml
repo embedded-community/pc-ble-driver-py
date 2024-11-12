@@ -80,6 +80,8 @@ jobs:
         PATH=/usr/local/bin:$PATH
         python3 --version
         pip3 install --upgrade pip
+        # install explicitly
+        pip3 install scikit-build~=0.18.1
 
     - name: Install Python dependencies
       working-directory: pc-ble-driver-py
