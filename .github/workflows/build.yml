@@ -35,7 +35,7 @@ jobs:
     - name: Checkout pc-ble-driver
       uses: actions/checkout@v4
       with:
-        repository: embedded-community/pc-ble-driver-py
+        repository: embedded-community/pc-ble-driver
         ref: 508273d3ef7e71f1678b2874ba80c2fd0bb2874f
         path: pc-ble-driver
 
