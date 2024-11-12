@@ -70,7 +70,7 @@ jobs:
 
     - name: Install Python dependencies
       working-directory: pc-ble-driver-py
-      run: python -m pip install -r requirements-dev.txt
+      run: python3 -m pip install -r requirements-dev.txt
 
     - name: Compile pc-ble-driver
       if: runner.os != 'Windows'
@@ -94,13 +94,13 @@ jobs:
       if: runner.os != 'Windows'
       working-directory: pc-ble-driver-py
       run: |
-        python setup.py bdist_wheel --build-type Release
+        python3 setup.py bdist_wheel --build-type Release
 
     - name: Build pc-ble-driver-py wheels windows
       if: runner.os == 'Windows'
       working-directory: pc-ble-driver-py
       run: |
-        python setup.py bdist_wheel --build-type Release -G "Visual Studio 16 2019" --skip-generator-test
+        python3 setup.py bdist_wheel --build-type Release -G "Visual Studio 16 2019" --skip-generator-test
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
