@@ -74,9 +74,10 @@ jobs:
         sudo ln -sf $PYTHON_PATH /usr/local/bin/python3
         sudo ln -sf $PYTHON_PATH /usr/local/bin/
 
-        # Add /usr/local/bin to the PATH to ensure it takes precedence
-        echo "/usr/local/bin" >> $GITHUB_PATH
-        
+        # Prepend /usr/local/bin to PATH to override any default Homebrew paths
+        echo "PATH=/usr/local/bin:$PATH" >> $GITHUB_ENV
+
+        PATH=/usr/local/bin:$PATH
         python3 --version
         pip3 install --upgrade pip
 
