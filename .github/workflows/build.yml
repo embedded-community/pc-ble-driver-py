@@ -189,7 +189,7 @@ jobs:
           python3 tests/validate_installation.py
     
   release:
-    needs: build
+    needs: test
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
     name: upload release assets
     runs-on: ubuntu-latest
