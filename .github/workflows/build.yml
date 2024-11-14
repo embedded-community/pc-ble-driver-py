@@ -57,12 +57,12 @@ jobs:
 
     - name: Setup python
       uses: actions/setup-python@v5
-      if: "! contains(matrix.os, 'macos')"
+      if: runner.os != 'macOS'
       with:
         python-version: ${{ matrix.python-version }}
         
     - name: Setup python for macos
-      if: contains(matrix.os, 'macos')
+      if: runner.os == 'macOS'
       run: |
         curl -s https://www.python.org/ftp/python/${{ matrix.macos-python-version }}/python-${{ matrix.macos-python-version }}-macos11.pkg --output python.pkg
         sudo installer -pkg python.pkg -target /
@@ -150,12 +150,12 @@ jobs:
         uses: actions/checkout@v4
       - name: Setup python
         uses: actions/setup-python@v5
-        if: "! contains(matrix.os, 'macos')"
+        if: runner.os != 'macOS'
         with:
           python-version: ${{ matrix.python-version }}
           
       - name: Setup python for macos
-        if: contains(matrix.os, 'macos')
+        if: runner.os == 'macOS'
         run: |
           curl -s https://www.python.org/ftp/python/${{ matrix.macos-python-version }}/python-${{ matrix.macos-python-version }}-macos11.pkg --output python.pkg
           sudo installer -pkg python.pkg -target /
@@ -202,6 +202,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: dist
+          pattern: pc_ble_driver_py-*-py310-*
 
       - name: flatten folder structure
         working-directory: dist
