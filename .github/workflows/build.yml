@@ -70,7 +70,6 @@ jobs:
         PYTHON_PATH=$(ls /Library/Frameworks/Python.framework/Versions/${{ matrix.python-version }}/bin/python3)
     
         # Create a symbolic link to the installed Python version
-        which python3
         sudo ln -sf $PYTHON_PATH /usr/local/bin/python3
         sudo ln -sf $PYTHON_PATH /usr/local/bin/
 
@@ -127,8 +126,70 @@ jobs:
         name: pc_ble_driver_py-${{ matrix.os }}-${{ matrix.toxpy}}
         path: "pc-ble-driver-py/dist/*.whl"
         if-no-files-found: error
-  release:
+
+  test:
+    name: Verify wheels
     needs: build
+    strategy:
+      matrix:
+        os: [ ubuntu-20.04, macos-13, macos-14, windows-2019 ]
+        python-version: [ '3.10', '3.11', '3.12' ]
+        include:
+          - python-version: '3.10'
+            toxpy: py310
+            macos-python-version: '3.10.9'
+          - python-version: '3.11'
+            toxpy: py311
+            macos-python-version: '3.11.9'
+          - python-version: '3.12'
+            toxpy: py312
+            macos-python-version: '3.12.7'
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup python
+        uses: actions/setup-python@v5
+        if: "! contains(matrix.os, 'macos')"
+        with:
+          python-version: ${{ matrix.python-version }}
+          
+      - name: Setup python for macos
+        if: contains(matrix.os, 'macos')
+        run: |
+          curl -s https://www.python.org/ftp/python/${{ matrix.macos-python-version }}/python-${{ matrix.macos-python-version }}-macos11.pkg --output python.pkg
+          sudo installer -pkg python.pkg -target /
+          # Find the path of the newly installed Python
+          PYTHON_PATH=$(ls /Library/Frameworks/Python.framework/Versions/${{ matrix.python-version }}/bin/python3)
+      
+          # Create a symbolic link to the installed Python version
+          sudo ln -sf $PYTHON_PATH /usr/local/bin/python3
+          sudo ln -sf $PYTHON_PATH /usr/local/bin/
+  
+          # Prepend /usr/local/bin to PATH to override any default Homebrew paths
+          echo "PATH=/usr/local/bin:$PATH" >> $GITHUB_ENV
+  
+          PATH=/usr/local/bin:$PATH
+          python3 --version
+          pip3 install --upgrade pip
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: pc_ble_driver_py-${{ matrix.os }}-${{ matrix.toxpy}}
+          path: dist
+          
+      - name: install wheel
+        shell: bash  # this ensure path format works also in windows 
+        run: pip3 install dist/*.whl
+
+      # this is sanity check that import works properly. If wheel does not work as expected, this throws
+      - name: verify
+        run: |
+          python3 tests/validate_installation.py
+    
+  release:
+    needs: test
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
     name: upload release assets
     runs-on: ubuntu-latest
