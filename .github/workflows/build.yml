@@ -180,6 +180,7 @@ jobs:
           path: dist
           
       - name: install wheel
+        shell: bash  # this ensure path format works also in windows 
         run: pip3 install dist/*.whl
 
       # this is sanity check that import works properly. If wheel does not work as expected, this throws
