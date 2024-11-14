@@ -184,18 +184,7 @@ jobs:
       # this is sanity check that import works properly. If wheel does not work as expected, this throws
       - name: verify
         run: |
-          python3 -c "
-            import sys
-            try:
-                from pc_ble_driver_py import config
-                config.__conn_ic_id__ = 'NRF52'
-                from pc_ble_driver_py.ble_driver import BLEDriver  # noqa: F401,pylint: disable=unused-import
-                print('INSTALLATION OK')
-            except Exception as error:  # pylint: disable=broad-except
-                print('INSTALLATION IS NOT OK!')
-                print(error)
-                sys.exit(1)
-            "
+          python3 tests/validate_installation.py
     
   release:
     needs: build
