@@ -179,12 +179,12 @@ jobs:
           path: dist
           
       - name: install wheel
-        run: pi install dist/*.whl
+        run: pip3 install dist/*.whl
 
       # this is sanity check that import works properly. If wheel does not work as expected, this throws
       - name: verify
         run: |
-          python -c "
+          python3 -c "
             import sys
             try:
                 from pc_ble_driver_py import config
