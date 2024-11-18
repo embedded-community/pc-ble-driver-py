@@ -208,7 +208,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: dist
-          pattern: pc_ble_driver_py-*-py39-*
+          pattern: pc_ble_driver_py-*-py39
 
       - name: flatten folder structure
         working-directory: dist
