@@ -182,7 +182,7 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          name: pc_ble_driver_py-${{ matrix.os }}-${{ matrix.toxpy}}
+          name: pc_ble_driver_py-${{ matrix.os }}-py39
           path: dist
           
       - name: install wheel
