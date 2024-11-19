@@ -111,14 +111,11 @@ jobs:
         cmake --build . --config Release
         cmake --install . --config Release
 
-    - name: Build pc-ble-driver-py wheels
+    - name: Build pc-ble-driver-py wheels (Linux/MacOS)
       working-directory: pc-ble-driver-py
-      shell: bash
+      if: runner.os != 'Windows'
       run: |
-        if [ "$RUNNER_OS" == "Windows" ]; then
-          # Use cmd.exe to run the Windows build command from Bash
-          cmd /C "python setup.py bdist_wheel --build-type Release -G 'Visual Studio 16 2019' --skip-generator-test"
-        elif [ "$RUNNER_OS" == "macOS" ]; then
+        if [ "$RUNNER_OS" == "macOS" ]; then
           python3 setup.py bdist_wheel --build-type Release --py-limited-api=
         elif [ "$RUNNER_OS" == "Linux" ]; then
           python3 setup.py bdist_wheel --build-type Release
@@ -126,6 +123,11 @@ jobs:
           echo "Unsupported OS: $RUNNER_OS"
           exit 1
         fi
+    - name: Build pc-ble-driver-py wheels (Windows)
+      if: runner.os == 'Windows'
+      working-directory: pc-ble-driver-py
+      run: |
+        python setup.py bdist_wheel --build-type Release -G 'Visual Studio 16 2019' --skip-generator-test
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
