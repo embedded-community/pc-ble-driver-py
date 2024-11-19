@@ -112,16 +112,20 @@ jobs:
         cmake --install . --config Release
 
     - name: Build pc-ble-driver-py wheels
-      if: runner.os != 'Windows'
       working-directory: pc-ble-driver-py
+      shell: bash
       run: |
-        python3 setup.py bdist_wheel --build-type Release
-
-    - name: Build pc-ble-driver-py wheels windows
-      if: runner.os == 'Windows'
-      working-directory: pc-ble-driver-py
-      run: |
-        python3 setup.py bdist_wheel --build-type Release -G "Visual Studio 16 2019" --skip-generator-test
+        if [ "$RUNNER_OS" == "Windows" ]; then
+          # Use cmd.exe to run the Windows build command from Bash
+          cmd /C "python setup.py bdist_wheel --build-type Release -G 'Visual Studio 16 2019' --skip-generator-test"
+        elif [ "$RUNNER_OS" == "macOS" ]; then
+          python3 setup.py bdist_wheel --build-type Release --py-limited-api=
+        elif [ "$RUNNER_OS" == "Linux" ]; then
+          python3 setup.py bdist_wheel --build-type Release
+        else
+          echo "Unsupported OS: $RUNNER_OS"
+          exit 1
+        fi
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
@@ -182,8 +186,9 @@ jobs:
 
       - name: Download artifact
         uses: actions/download-artifact@v4
+        if: runner.os != 'macos
         with:
-          name: pc_ble_driver_py-${{ matrix.os }}-py39
+          name: ${{ runner.os == 'macOS' && 'pc_ble_driver_py-' + matrix.os + '-' + matrix.toxpy || 'pc_ble_driver_py-' + matrix.os + '-py39' }}
           path: dist
           
       - name: install wheel
@@ -209,7 +214,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: dist
-          pattern: pc_ble_driver_py-*-py39
+          name: ${{ runner.os == 'macOS' && 'pc_ble_driver_py-*' || 'pc_ble_driver_py-*-py39' }}
 
       - name: flatten folder structure
         working-directory: dist
