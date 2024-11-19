@@ -188,7 +188,7 @@ jobs:
         uses: actions/download-artifact@v4
         if: runner.os != 'macos
         with:
-          name: ${{ runner.os == 'macOS' && 'pc_ble_driver_py-' + matrix.os + '-' + matrix.toxpy || 'pc_ble_driver_py-' + matrix.os + '-py39' }}
+          name: pc_ble_driver_py-${{ matrix.os }}-${{ runner.os == 'macOS' && matrix.toxpy || 'py39' }}
           path: dist
           
       - name: install wheel
@@ -214,7 +214,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: dist
-          name: ${{ runner.os == 'macOS' && 'pc_ble_driver_py-*' || 'pc_ble_driver_py-*-py39' }}
+          name: ${{ 'pc_ble_driver_py-' + matrix.os + '-' + (runner.os == 'macOS' && '*' || 'py39') }}
 
       - name: flatten folder structure
         working-directory: dist
