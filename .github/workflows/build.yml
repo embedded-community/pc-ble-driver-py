@@ -127,7 +127,7 @@ jobs:
       if: runner.os == 'Windows'
       working-directory: pc-ble-driver-py
       run: |
-        python setup.py bdist_wheel --build-type Release -G 'Visual Studio 16 2019' --skip-generator-test
+        python3 setup.py bdist_wheel --build-type Release -G "Visual Studio 16 2019" --skip-generator-test
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
