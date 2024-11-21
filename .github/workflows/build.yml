@@ -111,13 +111,19 @@ jobs:
         cmake --build . --config Release
         cmake --install . --config Release
 
-    - name: Build pc-ble-driver-py wheels
-      if: runner.os != 'Windows'
+    - name: Build pc-ble-driver-py wheels (macOS)
       working-directory: pc-ble-driver-py
+      if: runner.os == 'macOS'
+      run: |
+        python3 setup.py bdist_wheel --build-type Release --py-limited-api=
+
+    - name: Build pc-ble-driver-py wheels (Linux)
+      working-directory: pc-ble-driver-py
+      if: runner.os == 'Linux'
       run: |
         python3 setup.py bdist_wheel --build-type Release
 
-    - name: Build pc-ble-driver-py wheels windows
+    - name: Build pc-ble-driver-py wheels (Windows)
       if: runner.os == 'Windows'
       working-directory: pc-ble-driver-py
       run: |
@@ -134,6 +140,7 @@ jobs:
     name: Verify wheels
     needs: build
     strategy:
+      fail-fast: false
       matrix:
         os: [ ubuntu-20.04, macos-13, macos-14, windows-2019 ]
         python-version: [ '3.9', '3.10', '3.11', '3.12' ]
@@ -182,7 +189,7 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          name: pc_ble_driver_py-${{ matrix.os }}-${{ matrix.toxpy}}
+          name: pc_ble_driver_py-${{ matrix.os }}-${{ runner.os == 'macOS' && matrix.toxpy || 'py39' }}
           path: dist
           
       - name: install wheel
@@ -208,7 +215,17 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: dist
-          pattern: pc_ble_driver_py-*-py39
+          name: pc_ble_driver_py-*-py39  # these works for win/linux
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          name: pc_ble_driver_py-macos-13-*
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          name: pc_ble_driver_py-macos-14-*
 
       - name: flatten folder structure
         working-directory: dist
