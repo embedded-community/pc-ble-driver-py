@@ -111,18 +111,18 @@ jobs:
         cmake --build . --config Release
         cmake --install . --config Release
 
-    - name: Build pc-ble-driver-py wheels (Linux/MacOS)
+    - name: Build pc-ble-driver-py wheels (macOS)
       working-directory: pc-ble-driver-py
-      if: runner.os != 'Windows'
+      if: runner.os == 'macOS'
       run: |
-        if [ "$RUNNER_OS" == "macOS" ]; then
-          python3 setup.py bdist_wheel --build-type Release --py-limited-api=
-        elif [ "$RUNNER_OS" == "Linux" ]; then
-          python3 setup.py bdist_wheel --build-type Release
-        else
-          echo "Unsupported OS: $RUNNER_OS"
-          exit 1
-        fi
+        python3 setup.py bdist_wheel --build-type Release --py-limited-api=
+
+    - name: Build pc-ble-driver-py wheels (Linux)
+      working-directory: pc-ble-driver-py
+      if: runner.os == 'Linux'
+      run: |
+        python3 setup.py bdist_wheel --build-type Release
+
     - name: Build pc-ble-driver-py wheels (Windows)
       if: runner.os == 'Windows'
       working-directory: pc-ble-driver-py
