@@ -188,7 +188,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: dist
-          name: pc_ble_driver_py-macos-14-*
+          pattern: pc_ble_driver_py-macos-14-*
 
       - name: flatten folder structure
         working-directory: dist
