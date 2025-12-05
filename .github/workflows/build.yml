@@ -50,7 +50,7 @@ jobs:
 
     - name: Install macos dependencies
       if: runner.os == 'macOS'
-      run: brew install asio spdlog
+      run: brew install spdlog
 
     - name: Install windows dependencies
       if: runner.os == 'Windows'
@@ -70,14 +70,21 @@ jobs:
       run: python3 -m pip install -r requirements-dev.txt
 
     - name: Compile pc-ble-driver
-      if: runner.os != 'Windows'
+      if: runner.os == 'Linux'
       working-directory: pc-ble-driver
       run: |
         mkdir build && cd build
         cmake_args="-DCMAKE_BUILD_TYPE=Release -DDISABLE_TESTS=1 -DNRF_BLE_DRIVER_VERSION=${{ env.NRF_BLE_DRIVER_VERSION }}"
-        if [[ "${{ matrix.os }}" == "macos-14" ]]; then
-          cmake_args="$cmake_args -DARCH=arm64"
-        fi
+        cmake $cmake_args -G "Unix Makefiles" ..
+        make nrf_ble_driver_sd_api_v5_static
+        sudo make install
+
+    - name: Compile pc-ble-driver
+      if: runner.os == 'macOS'
+      working-directory: pc-ble-driver
+      run: |
+        mkdir build && cd build
+        cmake_args="-DCMAKE_BUILD_TYPE=Release -DDISABLE_TESTS=1 -DNRF_BLE_DRIVER_VERSION=${{ env.NRF_BLE_DRIVER_VERSION }} -DASIO_INCLUDE_DIR=../../pc-ble-driver-py/asio-1-32-0/asio/include/ -DARCH=arm64"
         cmake $cmake_args -G "Unix Makefiles" ..
         make nrf_ble_driver_sd_api_v5_static
         sudo make install
