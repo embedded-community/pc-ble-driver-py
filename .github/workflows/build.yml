@@ -183,7 +183,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: dist
-          name: pc_ble_driver_py-*-py39  # these works for win/linux
+          pattern: pc_ble_driver_py-{ubuntu,windows}*-py39  # these works for win/linux
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
