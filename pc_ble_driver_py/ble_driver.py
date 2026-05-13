@@ -1864,6 +1864,13 @@ class BLEDriver(object):
     ):
         super(BLEDriver, self).__init__()
         self.observers = list()  # type: List[BLEDriverObserver]
+        # Producer-side gate: native C callbacks check this before enqueuing.
+        # Set True at end of open() (after worker threads are running, before
+        # sd_rpc_open enables native event delivery). Set False at the very
+        # start of close() so any in-flight native callback returns early
+        # instead of stranding [adapter, ble_event] lists in the queue while
+        # the consumer thread is being torn down.
+        self._accepting_events = False
 
         if auto_flash:
             try:
@@ -2056,6 +2063,10 @@ class BLEDriver(object):
         self.ble_event_worker.daemon = True
         self.ble_event_worker.start()
 
+        # Open the producer gate *after* all consumer threads are running so we
+        # never enqueue an event before the consumer can pick it up.
+        self._accepting_events = True
+
         return driver.sd_rpc_open(
             self.rpc_adapter,
             self.status_handler,
@@ -2066,6 +2077,11 @@ class BLEDriver(object):
     @NordicSemiErrorCheck
     @wrapt.synchronized(api_lock)
     def close(self):
+        # Close the producer gate BEFORE sd_rpc_close so any native callbacks
+        # that fire during the close window return early instead of stranding
+        # events in the queue while consumer threads are being torn down.
+        self._accepting_events = False
+
         result = driver.sd_rpc_close(self.rpc_adapter)
         logger.debug("close result %s", result)
 
@@ -2638,22 +2654,38 @@ class BLEDriver(object):
         # clause guarantees prompt release after every iteration.
         item = None
         iter_count = 0
-        while self.run_workers:
-            try:
-                item = self.ble_event_queue.get(True, WORKER_QUEUE_WAIT_TIME)
-                self.ble_event_handler_sync(*item)
-            except queue.Empty:
-                pass
-            except Exception as ex:
-                logger.exception("Exception in event handler: {}".format(ex))
-            finally:
-                item = None
-            iter_count += 1
-            if iter_count >= self._GC_COLLECT_EVERY:
-                iter_count = 0
-                gc.collect()
+        try:
+            while self.run_workers:
+                try:
+                    item = self.ble_event_queue.get(True, WORKER_QUEUE_WAIT_TIME)
+                    self.ble_event_handler_sync(*item)
+                except queue.Empty:
+                    pass
+                except Exception as ex:
+                    logger.exception("Exception in event handler: {}".format(ex))
+                finally:
+                    item = None
+                iter_count += 1
+                if iter_count >= self._GC_COLLECT_EVERY:
+                    iter_count = 0
+                    gc.collect()
+        except BaseException:
+            # If the consumer dies for any reason (KeyboardInterrupt, SystemExit,
+            # unexpected error escaping the inner except), close the producer gate
+            # so native callbacks stop enqueuing events into a queue that has
+            # no drainer. Otherwise the queue would grow unbounded -> OOM.
+            logger.exception("ble_event_handler_thread died unexpectedly; closing producer gate")
+            self._accepting_events = False
+            raise
 
     def ble_event_handler(self, adapter, ble_event):
+        # Drop events when the driver is closing / not yet open. Without this
+        # gate, native callbacks that fire during open() before workers start
+        # or during close() after workers stop would enqueue [adapter, ble_event]
+        # lists that nobody drains — same RSS-growth failure mode as a dead
+        # consumer thread.
+        if not self._accepting_events:
+            return
         if self.rpc_adapter.internal == adapter.internal:
             self.ble_event_queue.put([adapter, ble_event])
         else:
