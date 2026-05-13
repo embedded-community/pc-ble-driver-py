@@ -38,6 +38,7 @@ import collections
 import functools
 import re
 import subprocess
+import gc
 import sys
 import time
 import traceback
@@ -2618,7 +2619,25 @@ class BLEDriver(object):
             except Exception as ex:
                 logger.exception("Exception in log handler: {}".format(ex))
 
+    # How often to force a full gc.collect() in the consumer thread, in
+    # iterations. SWIG-generated wrapper objects can participate in reference
+    # cycles that gen-2 GC reaps only on its own schedule; a periodic explicit
+    # collect prevents heap growth under sustained high event rates. ~1000
+    # iterations corresponds to roughly 2-3 seconds at peak BLE event throughput.
+    _GC_COLLECT_EVERY = 1000
+
     def ble_event_handler_thread(self):
+        # NOTE: `item` is declared in function scope and re-bound each iteration.
+        # When `queue.Empty` is raised, `item` is NOT rebound and still references
+        # the *previous* iteration's [adapter_t, ble_evt_t] list. Worse, when the
+        # outer `except Exception` fires, `sys.exc_info()` is captured by
+        # `logger.exception()` along with its traceback — the traceback retains
+        # this frame, including `item`, which keeps the SWIG wrappers alive far
+        # longer than necessary. Under high BLE traffic this used to accumulate
+        # ~110 MiB / 10 min on the Python heap. Clearing `item` in a `finally`
+        # clause guarantees prompt release after every iteration.
+        item = None
+        iter_count = 0
         while self.run_workers:
             try:
                 item = self.ble_event_queue.get(True, WORKER_QUEUE_WAIT_TIME)
@@ -2627,6 +2646,12 @@ class BLEDriver(object):
                 pass
             except Exception as ex:
                 logger.exception("Exception in event handler: {}".format(ex))
+            finally:
+                item = None
+            iter_count += 1
+            if iter_count >= self._GC_COLLECT_EVERY:
+                iter_count = 0
+                gc.collect()
 
     def ble_event_handler(self, adapter, ble_event):
         if self.rpc_adapter.internal == adapter.internal:
