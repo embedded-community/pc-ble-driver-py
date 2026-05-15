@@ -73,6 +73,16 @@ ATT_MTU_DEFAULT = None
 # Supports
 WORKER_QUEUE_WAIT_TIME = 1
 
+# Cap the ble event queue so a slow / dead consumer cannot drive RSS unbounded.
+# At peak BLE event throughput (~hundreds/s) this is ~10s of buffer — well beyond
+# any healthy consumer's drain time. Hitting it means the consumer is stuck.
+BLE_EVENT_QUEUE_MAXSIZE = 10000
+
+# Bound how long close() will block waiting for a worker thread to exit.
+# If a thread is buggy enough to hang past this, log + continue rather than
+# deadlock the caller.
+WORKER_JOIN_TIMEOUT_S = 5.0
+
 if nrf_sd_ble_api_ver == 2:
     import pc_ble_driver_py.lib.nrf_ble_driver_sd_api_v2 as driver
 
@@ -1871,6 +1881,10 @@ class BLEDriver(object):
         # instead of stranding [adapter, ble_event] lists in the queue while
         # the consumer thread is being torn down.
         self._accepting_events = False
+        # Counter incremented when the bounded ble_event_queue rejects a put.
+        # Logged on every Nth drop (to avoid spamming when degraded) and again
+        # in close().
+        self._dropped_events = 0
 
         if auto_flash:
             try:
@@ -1908,7 +1922,7 @@ class BLEDriver(object):
 
         self.log_queue = queue.Queue()
         self.status_queue = queue.Queue()
-        self.ble_event_queue = queue.Queue()
+        self.ble_event_queue = queue.Queue(maxsize=BLE_EVENT_QUEUE_MAXSIZE)
 
     def init_keyset(self):
         keyset = driver.ble_gap_sec_keyset_t()
@@ -2091,7 +2105,23 @@ class BLEDriver(object):
 
             logger.debug("Stopping workers")
 
-            self.log_worker.join()
+            # Bounded joins so a buggy/stuck worker can't deadlock close().
+            # On timeout, log loudly but continue teardown — leaking a daemon
+            # thread is better than hanging the caller forever.
+            for worker_name in ("log_worker", "status_worker", "ble_event_worker"):
+                worker = getattr(self, worker_name)
+                worker.join(timeout=WORKER_JOIN_TIMEOUT_S)
+                if worker.is_alive():
+                    logger.error(
+                        "%s did not exit within %ss; abandoning",
+                        worker_name, WORKER_JOIN_TIMEOUT_S,
+                    )
+
+            if self._dropped_events:
+                logger.warning(
+                    "ble_event_queue dropped %d events during this session",
+                    self._dropped_events,
+                )
 
             # Empty log_queue
             try:
@@ -2100,16 +2130,12 @@ class BLEDriver(object):
             except queue.Empty:
                 pass
 
-            self.status_worker.join()
-
             # Empty status_queue
             try:
                 while True:
                     self.status_queue.get_nowait()
             except queue.Empty:
                 pass
-
-            self.ble_event_worker.join()
 
             # Empty ble_event_queue
             try:
@@ -2687,7 +2713,18 @@ class BLEDriver(object):
         if not self._accepting_events:
             return
         if self.rpc_adapter.internal == adapter.internal:
-            self.ble_event_queue.put([adapter, ble_event])
+            # put_nowait so a stuck consumer caps memory growth instead of
+            # driving RSS unbounded. Dropping events under sustained back-
+            # pressure is preferable to OOM; the count is tracked for diag.
+            try:
+                self.ble_event_queue.put_nowait([adapter, ble_event])
+            except queue.Full:
+                self._dropped_events += 1
+                if self._dropped_events % 1000 == 1:
+                    logger.error(
+                        "ble_event_queue full; dropped %d events (consumer stuck?)",
+                        self._dropped_events,
+                    )
         else:
             logger.error(
                 "ble_event_handler, event for adapter %d, current adapter is %d",
