@@ -120,9 +120,18 @@ foreach(SD_API_VER ${SD_API_VERS})
     endif()
 
     set(LINK_LIBRARIES nrf::nrf_ble_driver_sd_api_v${SD_API_VER}_${NRF_BLE_DRIVER_LINKAGE_TYPE})
-    if (WIN32 OR APPLE)
+    if (WIN32)
+        # Windows has no dynamic-lookup equivalent: an extension DLL must resolve
+        # its Python symbols at link time.
         set(LINK_LIBRARIES ${LINK_LIBRARIES} ${PYTHON_LIBRARY_FROM_USER_FLAGS})
         message(VERBOSE "Python library from the user flags is : ${PYTHON_LIBRARY_FROM_USER_FLAGS}")
+    elseif (APPLE)
+        # Do not link libpython on macOS: it bakes the build-time interpreter's
+        # absolute path into the extension as a load command, so the module
+        # cannot be imported by any other CPython of the same version.
+        # -undefined dynamic_lookup is what CPython itself uses to build
+        # extensions -- Python's symbols are resolved by whoever dlopens us.
+        target_link_options(${PYTHON_MODULE_${SD_API_VER}} PRIVATE -undefined dynamic_lookup)
     endif()
 
     message(VERBOSE STATUS "LINK_LIBRARIES are ${LINK_LIBRARIES}")
