@@ -344,8 +344,7 @@ static void PythonStatusCallBack(adapter_t *adapter, sd_rpc_app_status_t status_
     adapter_obj = SWIG_NewPointerObj(SWIG_as_voidptr(adapter), SWIGTYPE_p_adapter_t, 0 |  0 );
     status_code_obj = SWIG_From_int((int)(status_code));
 
-    // SWIG_Python_str_FromChar boils down to PyString_FromString which does a copy of log_message string
-    status_message_obj = SWIG_Python_str_FromChar((const char *)status_message);
+    status_message_obj = PyUnicode_FromString(status_message ? status_message : "");
     arglist = Py_BuildValue("(OOO)", adapter_obj, status_code_obj, status_message_obj);
 
     result = PyObject_Call(func, arglist, NULL);
@@ -400,8 +399,7 @@ static void PythonLogCallBack(adapter_t *adapter, sd_rpc_log_severity_t severity
     adapter_obj = SWIG_NewPointerObj(SWIG_as_voidptr(adapter), SWIGTYPE_p_adapter_t, 0 |  0 );
     severity_obj = SWIG_From_int((int)(severity));
 
-    // SWIG_Python_str_FromChar boils down to PyString_FromString which does a copy of log_message string
-    message_obj = SWIG_Python_str_FromChar((const char *)log_message);
+    message_obj = PyUnicode_FromString(log_message ? log_message : "");
     arglist = Py_BuildValue("(OOO)", adapter_obj, severity_obj, message_obj);
 
     result = PyObject_Call(func, arglist, NULL);
