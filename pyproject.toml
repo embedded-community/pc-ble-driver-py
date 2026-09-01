@@ -1,9 +1,2 @@
 [build-system]
-requires = ["setuptools", "wheel", "scikit-build", "cmake", "swig", "ninja", "tox"]
-
-[flake8]
-exclude = [
-    "hex",
-    "__pycache__",
-    "lib"
-]
+requires = ["setuptools", "wheel", "scikit-build", "cmake", "swig", "ninja"]
