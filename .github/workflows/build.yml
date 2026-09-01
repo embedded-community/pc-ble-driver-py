@@ -97,7 +97,9 @@ jobs:
       working-directory: pc-ble-driver
       run: |
         mkdir build && cd build
-        cmake -DCMAKE_BUILD_TYPE=Release -DDISABLE_TESTS=1 "-DNRF_BLE_DRIVER_VERSION=${{ env.NRF_BLE_DRIVER_VERSION }}" -G "Visual Studio 17 2022" -A x64 ..
+        # /FIchrono: serialization_transport.cpp uses std::chrono::system_clock without
+        # including <chrono>; the VS 2022 STL no longer pulls it in transitively.
+        cmake -DCMAKE_BUILD_TYPE=Release -DDISABLE_TESTS=1 "-DNRF_BLE_DRIVER_VERSION=${{ env.NRF_BLE_DRIVER_VERSION }}" "-DCMAKE_CXX_FLAGS=/FIchrono" -G "Visual Studio 17 2022" -A x64 ..
         cmake --build . --config Release
         cmake --install . --config Release
 
