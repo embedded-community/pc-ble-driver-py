@@ -115,7 +115,7 @@ jobs:
       working-directory: pc-ble-driver-py
       if: runner.os == 'macOS'
       run: |
-        python3 setup.py bdist_wheel --build-type Release --py-limited-api=
+        python3 setup.py bdist_wheel --build-type Release
 
     # A baked-in libpython path ties the wheel to the build interpreter. Verify wheels
     # can't catch it, since it reinstalls into that same interpreter.
@@ -193,7 +193,7 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v8
         with:
-          name: pc_ble_driver_py-${{ matrix.os }}-${{ runner.os == 'macOS' && matrix.toxpy || 'py39' }}
+          name: pc_ble_driver_py-${{ matrix.os }}-py39
           path: dist
           
       - name: install wheel
@@ -231,12 +231,7 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           path: dist
-          pattern: pc_ble_driver_py-{ubuntu,windows}*-py39  # these works for win/linux
-      - name: Download artifacts
-        uses: actions/download-artifact@v8
-        with:
-          path: dist
-          pattern: pc_ble_driver_py-macos-15-*
+          pattern: pc_ble_driver_py-*-py39
 
       - name: flatten folder structure
         working-directory: dist
@@ -250,6 +245,15 @@ jobs:
           # a download pattern matching nothing is not an error, so check the assets
           for p in linux macosx win_amd64; do
             ls *.whl | grep -q "$p" || { echo "::error::no $p wheel among release assets"; exit 1; }
+          done
+
+          # the wheel version comes from __init__.py, nothing ties it to the tag
+          want="${GITHUB_REF_NAME#v}"
+          for w in *.whl; do
+            case "$w" in
+              pc_ble_driver_py-"$want"-*) ;;
+              *) echo "::error::$w is not version $want from tag $GITHUB_REF_NAME"; exit 1 ;;
+            esac
           done
 
       - name: upload release assets
