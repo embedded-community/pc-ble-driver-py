@@ -99,7 +99,8 @@ jobs:
       if: runner.os == 'Windows'
       shell: bash
       working-directory: pc-ble-driver
-      run: sed -i '1i #include <chrono>' src/common/transport/serialization_transport.cpp
+      run: |
+        sed -i '1i #include <chrono>' src/common/transport/serialization_transport.cpp
 
     - name: Compile pc-ble-driver windows
       if: runner.os == 'Windows'
