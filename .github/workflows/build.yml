@@ -205,6 +205,18 @@ jobs:
         run: |
           python3 tests/validate_installation.py
     
+  # Single stable check name to require in branch protection, so matrix and runner
+  # renames never invalidate the required list.
+  ci:
+    name: CI
+    if: always()
+    needs: [ build, test ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if any build or wheel check failed
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        run: exit 1
+
   release:
     needs: test
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
