@@ -247,6 +247,15 @@ jobs:
             ls *.whl | grep -q "$p" || { echo "::error::no $p wheel among release assets"; exit 1; }
           done
 
+          # the wheel version comes from __init__.py, nothing ties it to the tag
+          want="${GITHUB_REF_NAME#v}"
+          for w in *.whl; do
+            case "$w" in
+              pc_ble_driver_py-"$want"-*) ;;
+              *) echo "::error::$w is not version $want from tag $GITHUB_REF_NAME"; exit 1 ;;
+            esac
+          done
+
       - name: upload release assets
         uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64  # v3.0.3
         with:
