@@ -6,6 +6,9 @@ on:
       - master
     tags:
       - v*
+  # Catch breakage from unpinned build deps (swig, cmake) here, not on an unrelated PR.
+  schedule:
+    - cron: '17 4 1 * *'
 env:
   NRF_BLE_DRIVER_VERSION: 4.1.100
 jobs:
@@ -13,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-22.04, macos-14, windows-2019 ]
+        os: [ ubuntu-22.04, macos-15, windows-2022 ]
         python-version: [ '3.9', '3.10', '3.11', '3.12' ]
         include:
           - python-version: '3.9'
@@ -94,7 +97,7 @@ jobs:
       working-directory: pc-ble-driver
       run: |
         mkdir build && cd build
-        cmake -DCMAKE_BUILD_TYPE=Release -DDISABLE_TESTS=1 "-DNRF_BLE_DRIVER_VERSION=${{ env.NRF_BLE_DRIVER_VERSION }}" -G "Visual Studio 16 2019" -A x64 ..
+        cmake -DCMAKE_BUILD_TYPE=Release -DDISABLE_TESTS=1 "-DNRF_BLE_DRIVER_VERSION=${{ env.NRF_BLE_DRIVER_VERSION }}" -G "Visual Studio 17 2022" -A x64 ..
         cmake --build . --config Release
         cmake --install . --config Release
 
@@ -103,6 +106,26 @@ jobs:
       if: runner.os == 'macOS'
       run: |
         python3 setup.py bdist_wheel --build-type Release --py-limited-api=
+
+    # A baked-in libpython path ties the wheel to the build interpreter. Verify wheels
+    # can't catch it, since it reinstalls into that same interpreter.
+    - name: Check macOS extensions have no libpython dependency
+      working-directory: pc-ble-driver-py
+      if: runner.os == 'macOS'
+      run: |
+        set -euo pipefail
+        rm -rf wheelcheck && mkdir wheelcheck
+        unzip -q dist/*.whl -d wheelcheck
+        status=0
+        for so in wheelcheck/pc_ble_driver_py/lib/*.so; do
+          echo "== $so"
+          otool -L "$so"
+          if otool -L "$so" | tail -n +2 | grep -Ei 'libpython|Python\.framework'; then
+            echo "::error file=CMakeLists.txt::$so links libpython; it will not import under another interpreter"
+            status=1
+          fi
+        done
+        exit $status
 
     - name: Build pc-ble-driver-py wheels (Linux)
       working-directory: pc-ble-driver-py
@@ -114,7 +137,7 @@ jobs:
       if: runner.os == 'Windows'
       working-directory: pc-ble-driver-py
       run: |
-        python3 setup.py bdist_wheel --build-type Release -G "Visual Studio 16 2019" --skip-generator-test
+        python3 setup.py bdist_wheel --build-type Release -G "Visual Studio 17 2022" --skip-generator-test
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v7
@@ -129,7 +152,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-22.04, macos-14, windows-2019 ]
+        os: [ ubuntu-22.04, macos-15, windows-2022 ]
         python-version: [ '3.9', '3.10', '3.11', '3.12' ]
         include:
           - python-version: '3.9'
@@ -188,7 +211,7 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           path: dist
-          pattern: pc_ble_driver_py-macos-14-*
+          pattern: pc_ble_driver_py-macos-15-*
 
       - name: flatten folder structure
         working-directory: dist
@@ -200,6 +223,6 @@ jobs:
           ls -R
 
       - name: upload release assets
-        uses: softprops/action-gh-release@v3
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64  # v3.0.3
         with:
           files: dist/*

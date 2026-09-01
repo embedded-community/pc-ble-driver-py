@@ -131,7 +131,9 @@ foreach(SD_API_VER ${SD_API_VERS})
         # cannot be imported by any other CPython of the same version.
         # -undefined dynamic_lookup is what CPython itself uses to build
         # extensions -- Python's symbols are resolved by whoever dlopens us.
-        target_link_options(${PYTHON_MODULE_${SD_API_VER}} PRIVATE -undefined dynamic_lookup)
+        # SHELL: keeps the two words together -- CMake de-duplicates link options
+        # and would be free to split or drop one half of the pair otherwise.
+        target_link_options(${PYTHON_MODULE_${SD_API_VER}} PRIVATE "SHELL:-undefined dynamic_lookup")
     endif()
 
     message(VERBOSE STATUS "LINK_LIBRARIES are ${LINK_LIBRARIES}")
