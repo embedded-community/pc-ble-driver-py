@@ -146,8 +146,11 @@ jobs:
     - name: Build pc-ble-driver-py wheels (Windows)
       if: runner.os == 'Windows'
       working-directory: pc-ble-driver-py
+      # No --skip-generator-test: that makes scikit-build take the first candidate for
+      # this generator name unprobed, and its list starts with the v144 toolset, which
+      # windows-2022 does not have. Probing falls through to v143.
       run: |
-        python3 setup.py bdist_wheel --build-type Release -G "Visual Studio 17 2022" --skip-generator-test
+        python3 setup.py bdist_wheel --build-type Release -G "Visual Studio 17 2022"
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v7
