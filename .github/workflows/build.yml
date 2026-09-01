@@ -247,6 +247,11 @@ jobs:
           # list files
           ls -R
 
+          # a download pattern matching nothing is not an error, so check the assets
+          for p in linux macosx win_amd64; do
+            ls *.whl | grep -q "$p" || { echo "::error::no $p wheel among release assets"; exit 1; }
+          done
+
       - name: upload release assets
         uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64  # v3.0.3
         with:
