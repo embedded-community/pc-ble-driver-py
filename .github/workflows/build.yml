@@ -115,7 +115,7 @@ jobs:
       working-directory: pc-ble-driver-py
       if: runner.os == 'macOS'
       run: |
-        python3 setup.py bdist_wheel --build-type Release --py-limited-api=
+        python3 setup.py bdist_wheel --build-type Release
 
     # A baked-in libpython path ties the wheel to the build interpreter. Verify wheels
     # can't catch it, since it reinstalls into that same interpreter.
@@ -193,7 +193,7 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v8
         with:
-          name: pc_ble_driver_py-${{ matrix.os }}-${{ runner.os == 'macOS' && matrix.toxpy || 'py39' }}
+          name: pc_ble_driver_py-${{ matrix.os }}-py39
           path: dist
           
       - name: install wheel
@@ -231,12 +231,7 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           path: dist
-          pattern: pc_ble_driver_py-{ubuntu,windows}*-py39  # these works for win/linux
-      - name: Download artifacts
-        uses: actions/download-artifact@v8
-        with:
-          path: dist
-          pattern: pc_ble_driver_py-macos-15-*
+          pattern: pc_ble_driver_py-*-py39
 
       - name: flatten folder structure
         working-directory: dist
